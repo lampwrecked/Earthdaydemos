@@ -1,387 +1,352 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Earth Day Demos — Lampwrecked</title>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #060a05;
-      --grid: #0d1a0b;
-      --green: #3dff4a;
-      --green-dim: #1a7a20;
-      --green-faint: #0d3310;
-      --amber: #c8ff00;
-      --rust: #7fff3a;
-      --text: #b8ffbe;
-      --text-dim: #4a7a4e;
-      --scanline: rgba(0,0,0,0.18);
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Synths — Lampwrecked</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--black:#0a0a0a;--white:#f4f4f0;--gl:#e0e0db;--gm:#888884;--gd:#2a2a28}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'Space Grotesk',sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+a{color:inherit}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── REACTIVE BG CANVAS ─── */
+#bgCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block}
 
-    html, body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Courier Prime', monospace;
-      overflow-x: hidden;
-    }
+/* ─── NAV ─── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:64px;background:rgba(10,10,10,0.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--gd);gap:2rem}
+.logo{font-family:'Space Mono',monospace;font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:var(--white);text-decoration:none;flex-shrink:0;white-space:nowrap}
+.nav-links{display:flex;gap:2rem;list-style:none;align-items:center;flex-wrap:nowrap}
+.nav-links a{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gm);text-decoration:none;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--white)}
 
-    /* CRT scanline overlay */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        var(--scanline) 2px,
-        var(--scanline) 4px
-      );
-      pointer-events: none;
-      z-index: 1000;
-    }
+/* ─── HERO ─── */
+.hero{padding-top:64px;min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:4rem;padding-left:2.5rem;padding-right:2.5rem;border-bottom:1px solid var(--gd);position:relative;overflow:hidden}
+.hc{position:relative;z-index:2;max-width:900px}
+h1{font-size:clamp(3rem,8vw,7rem);font-weight:700;line-height:.95;letter-spacing:-.03em;margin-bottom:1.5rem}
+.status{margin-top:2rem;border-left:2px solid var(--white);padding-left:1.25rem;max-width:640px}
+.status-row{display:flex;align-items:center;gap:.75rem;font-family:'Space Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gm);margin-bottom:.5rem}
+.status-row strong{color:var(--white);font-weight:700}
+.dot{width:8px;height:8px;background:var(--white);border-radius:50%;display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.status-line{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--gl);letter-spacing:.05em;margin-top:.4rem}
+.status-line .k{color:var(--gm)}
 
-    /* Noise grain */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: -50%;
-      width: 200%;
-      height: 200%;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 999;
-      opacity: 0.4;
-    }
+/* ─── SECTIONS ─── */
+section{padding:6rem 2.5rem;border-bottom:1px solid var(--gd);position:relative;z-index:1;background:rgba(10,10,10,.55)}
+.sh{display:flex;align-items:baseline;gap:1.5rem;margin-bottom:3rem}
+.sn{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--gm);letter-spacing:.15em}
+h2{font-size:clamp(2rem,4vw,3.5rem);font-weight:700;letter-spacing:-.02em}
 
-    .container {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 60px 28px 80px;
-      position: relative;
-    }
+/* ─── PROJECT GRID (matches lampwrecked.art Work cards) ─── */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--gd)}
+.card{background:var(--black);position:relative;overflow:hidden;min-height:340px;text-decoration:none;color:inherit;display:block;isolation:isolate}
+.card-media{position:absolute;inset:0;z-index:0;overflow:hidden;background:radial-gradient(circle at 30% 20%,rgba(244,244,240,.06),transparent 60%)}
+.card-content{position:relative;z-index:2;padding:2.5rem;display:flex;flex-direction:column;gap:1.25rem;min-height:340px}
+.tag{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--white);border:1px solid rgba(244,244,240,.4);background:rgba(10,10,10,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:inline-block;padding:.25rem .65rem;width:fit-content}
+.cn{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--gl);position:absolute;top:1rem;right:1.5rem;letter-spacing:.1em;z-index:3;opacity:.7}
+.card h3{font-size:clamp(1.6rem,2.5vw,2.2rem);font-weight:700;letter-spacing:-.02em;line-height:1.05;margin-top:auto;color:var(--white);text-shadow:0 2px 12px rgba(0,0,0,.6);transition:color .2s}
+.card:hover h3{color:var(--gl)}
+.desc{font-size:.92rem;color:var(--gl);line-height:1.7;max-width:420px;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.cf{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:1.5rem;border-top:1px solid rgba(244,244,240,.2)}
+.yr{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--gl);letter-spacing:.1em;opacity:.8}
+.arr{font-size:1rem;color:var(--white);transition:transform .2s;display:inline-block}
+.card:hover .arr{transform:translate(4px,-4px)}
 
-    /* Header */
-    header {
-      margin-bottom: 56px;
-      border-left: 2px solid var(--green);
-      padding-left: 20px;
-    }
+@media(max-width:768px){
+nav{padding:0 1.25rem}
+section{padding:4rem 1.25rem}
+.hero{padding-left:1.25rem;padding-right:1.25rem}
+.grid{grid-template-columns:1fr}
+.card{min-height:300px}
+.card-content{min-height:300px;padding:2rem}
+}
 
-    .site-label {
-      font-family: 'VT323', monospace;
-      font-size: 13px;
-      letter-spacing: 0.22em;
-      color: var(--green-dim);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      font-family: 'VT323', monospace;
-      font-size: clamp(42px, 10vw, 72px);
-      line-height: 0.92;
-      color: var(--green);
-      text-shadow: 0 0 24px rgba(61,255,74,0.35), 0 0 60px rgba(61,255,74,0.12);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-
-    h1 span {
-      color: var(--amber);
-      text-shadow: 0 0 20px rgba(200,255,0,0.4);
-    }
-
-    .subtitle {
-      margin-top: 14px;
-      font-size: 12px;
-      letter-spacing: 0.15em;
-      color: var(--text-dim);
-      text-transform: uppercase;
-    }
-
-    /* Divider */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, var(--green) 0%, var(--green-dim) 40%, transparent 100%);
-      margin-bottom: 48px;
-      position: relative;
-    }
-
-    .divider::before {
-      content: '///';
-      position: absolute;
-      right: 0;
-      top: -9px;
-      font-size: 11px;
-      color: var(--green-dim);
-      letter-spacing: 0.1em;
-    }
-
-    /* Demo list */
-    .demo-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .demo-item {
-      display: block;
-      text-decoration: none;
-      padding: 22px 0;
-      border-bottom: 1px solid var(--green-faint);
-      position: relative;
-      transition: all 0.15s ease;
-      cursor: pointer;
-    }
-
-    .demo-item::before {
-      content: '';
-      position: absolute;
-      left: -28px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: var(--green);
-      opacity: 0;
-      transition: opacity 0.15s ease;
-    }
-
-    .demo-item:hover::before {
-      opacity: 1;
-    }
-
-    .demo-item:hover {
-      padding-left: 12px;
-    }
-
-    .demo-item:hover .demo-name {
-      color: var(--amber);
-      text-shadow: 0 0 16px rgba(200,255,0,0.5);
-    }
-
-    .demo-item:hover .demo-desc {
-      color: var(--text);
-    }
-
-    .demo-item:hover .arrow {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .demo-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 7px;
-    }
-
-    .demo-name {
-      font-family: 'VT323', monospace;
-      font-size: 28px;
-      color: var(--green);
-      text-shadow: 0 0 10px rgba(61,255,74,0.2);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      transition: all 0.15s ease;
-      line-height: 1;
-    }
-
-    .arrow {
-      font-size: 18px;
-      color: var(--amber);
-      opacity: 0;
-      transform: translateX(-6px);
-      transition: all 0.15s ease;
-      flex-shrink: 0;
-    }
-
-    .demo-desc {
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--text-dim);
-      font-style: italic;
-      transition: color 0.15s ease;
-      max-width: 580px;
-    }
-
-    /* index numbers */
-    .demo-index {
-      font-family: 'VT323', monospace;
-      font-size: 13px;
-      color: var(--green-dim);
-      letter-spacing: 0.1em;
-      margin-bottom: 4px;
-    }
-
-    /* Footer */
-    footer {
-      margin-top: 64px;
-      padding-top: 20px;
-      border-top: 1px solid var(--green-faint);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    footer a {
-      font-size: 11px;
-      letter-spacing: 0.18em;
-      color: var(--green-dim);
-      text-decoration: none;
-      text-transform: uppercase;
-      transition: color 0.15s;
-    }
-
-    footer a:hover {
-      color: var(--green);
-    }
-
-    .footer-right {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      color: var(--green-dim);
-      text-transform: uppercase;
-    }
-
-    /* Flicker animation on load */
-    @keyframes flicker {
-      0%   { opacity: 0.85; }
-      10%  { opacity: 1; }
-      12%  { opacity: 0.6; }
-      14%  { opacity: 1; }
-      60%  { opacity: 1; }
-      62%  { opacity: 0.75; }
-      64%  { opacity: 1; }
-      100% { opacity: 1; }
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    header {
-      animation: flicker 0.8s ease forwards, fadeUp 0.6s ease forwards;
-    }
-
-    .demo-item {
-      opacity: 0;
-      animation: fadeUp 0.5s ease forwards;
-    }
-
-    .demo-item:nth-child(1) { animation-delay: 0.15s; }
-    .demo-item:nth-child(2) { animation-delay: 0.22s; }
-    .demo-item:nth-child(3) { animation-delay: 0.29s; }
-    .demo-item:nth-child(4) { animation-delay: 0.36s; }
-    .demo-item:nth-child(5) { animation-delay: 0.43s; }
-    .demo-item:nth-child(6) { animation-delay: 0.50s; }
-    .demo-item:nth-child(7) { animation-delay: 0.57s; }
-
-    /* Glitch effect on hover for title */
-    h1:hover {
-      animation: glitch 0.3s steps(2) forwards;
-    }
-
-    @keyframes glitch {
-      0%   { text-shadow: 2px 0 var(--amber), -2px 0 var(--green); clip-path: inset(10% 0 80% 0); }
-      25%  { text-shadow: -2px 0 var(--amber), 2px 0 var(--green); clip-path: inset(60% 0 20% 0); }
-      50%  { text-shadow: 1px 0 #ff3a3a, -1px 0 var(--green); clip-path: inset(30% 0 50% 0); }
-      75%  { text-shadow: 0 0 24px rgba(61,255,74,0.35); clip-path: inset(0% 0 0% 0); }
-      100% { text-shadow: 0 0 24px rgba(61,255,74,0.35), 0 0 60px rgba(61,255,74,0.12); }
-    }
-  </style>
+/* ─── FOOTER ─── */
+footer{padding:2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;background:rgba(10,10,10,.7);flex-wrap:wrap;gap:.75rem}
+.fl{font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gm);text-decoration:none;transition:color .2s}
+.fl:hover{color:var(--white)}
+.fc{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--gd)}
+@media(max-width:768px){footer{flex-direction:column;align-items:flex-start;padding:1.5rem 1.25rem}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="site-label">lampwrecked.art</div>
-      <h1>Earth Day<br><span>Demos</span></h1>
-      <p class="subtitle">Seven browser instruments &mdash; April 2026</p>
-    </header>
 
-    <div class="divider"></div>
+<canvas id="bgCanvas"></canvas>
 
-    <nav class="demo-list">
+<nav>
+  <a class="logo" href="https://lampwrecked.art">Lampwrecked</a>
+  <ul class="nav-links">
+    <li><a href="https://lampwrecked.art#work">Work</a></li>
+    <li><a href="https://lampwrecked.art#about">About</a></li>
+    <li><a href="https://lampwrecked.art#contact">Connect</a></li>
+  </ul>
+</nav>
 
-      <a class="demo-item" href="https://lampwrecked.github.io/earthflute/" aria-label="Earth Flute">
-        <div class="demo-index">01 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Earth Flute</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">Real wind, played as music. Select any coordinates and let the atmosphere perform.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/Fishskin/" aria-label="Fish Skin">
-        <div class="demo-index">02 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Fish Skin</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">Iridescent geometry as drum machine. Scales phase-drift into polyrhythmic percussion.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/Rosarium/" aria-label="Rosarium">
-        <div class="demo-index">03 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Rosarium</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">Each flower is a chord. Tap to bloom, grow a garden of sound.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/Mycodrone/" aria-label="Mycodrone">
-        <div class="demo-index">04 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Mycodrone</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">Living sonic ecosystem of growth, predation and decay.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/Pond/" aria-label="Pond">
-        <div class="demo-index">05 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Pond</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">Throw stones into still water. Each movement ripples outward into tone.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/Animaltracks/" aria-label="Animal Tracks">
-        <div class="demo-index">06 /</div>
-        <div class="demo-row">
-          <span class="demo-name">Animal Tracks</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">The forest as rhythm section. Creatures wander into polyrhythmic percussion.</p>
-      </a>
-
-      <a class="demo-item" href="https://lampwrecked.github.io/nerve/" aria-label="NERVE">
-        <div class="demo-index">07 /</div>
-        <div class="demo-row">
-          <span class="demo-name">NERVE</span>
-          <span class="arrow">&#8594;</span>
-        </div>
-        <p class="demo-desc">A living mesh of sound. Draw loops into a nervous system that breathes between order and dysfunction.</p>
-      </a>
-
-    </nav>
-
-    <footer>
-      <a href="https://lampwrecked.art">&#8592; lampwrecked.art</a>
-      <!-- host at earthday.lampwrecked.art -->
-      <span class="footer-right">Earth Day 2026</span>
-    </footer>
+<section class="hero" id="top">
+  <div class="hc">
+    <h1>Synths</h1>
+    <div class="status">
+      <div class="status-row"><span class="dot"></span><span><strong>Sound Studies</strong> &nbsp;//&nbsp; Active</span></div>
+      <div class="status-line"><span class="k">&gt;</span> Browser instruments from natural systems<span class="k">...</span></div>
+      <div class="status-line"><span class="k">&gt;</span> Six instruments<span class="k">:</span></div>
+    </div>
   </div>
+</section>
+
+<section id="list">
+  <div class="sh"><span class="sn">01</span><h2>Instruments</h2></div>
+  <div class="grid">
+
+    <a class="card" href="https://lampwrecked.github.io/earthflute/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">001</span>
+      <div class="card-content">
+        <span class="tag">Wind Data</span>
+        <h3>Earth Flute</h3>
+        <p class="desc">Real wind, played as music. Select any coordinates and let the atmosphere perform.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="https://lampwrecked.github.io/Fishskin/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">002</span>
+      <div class="card-content">
+        <span class="tag">Drum Machine</span>
+        <h3>Fish Skin</h3>
+        <p class="desc">Iridescent geometry as drum machine. Scales phase-drift into polyrhythmic percussion.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="https://lampwrecked.github.io/Rosarium/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">003</span>
+      <div class="card-content">
+        <span class="tag">Chord Garden</span>
+        <h3>Rosarium</h3>
+        <p class="desc">Each flower is a chord. Tap to bloom, grow a garden of sound.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="https://lampwrecked.github.io/Mycodrone/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">004</span>
+      <div class="card-content">
+        <span class="tag">Living System</span>
+        <h3>Mycodrone</h3>
+        <p class="desc">Living sonic ecosystem of growth, predation and decay.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="https://lampwrecked.github.io/Pond/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">005</span>
+      <div class="card-content">
+        <span class="tag">Ripple Physics</span>
+        <h3>Pond</h3>
+        <p class="desc">Throw stones into still water. Each movement ripples outward into tone.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="https://lampwrecked.github.io/nerve/" target="_blank">
+      <div class="card-media"></div>
+      <span class="cn">006</span>
+      <div class="card-content">
+        <span class="tag">Neural Mesh</span>
+        <h3>NERVE</h3>
+        <p class="desc">A living mesh of sound. Draw loops into a nervous system that breathes between order and dysfunction.</p>
+        <div class="cf"><span class="yr">2026</span><span class="arr">&#8599;</span></div>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<footer>
+  <a class="fl" href="https://lampwrecked.art">&#8592; lampwrecked.art</a>
+  <span class="fc">Synths &mdash; Lampwrecked</span>
+</footer>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   Reactive generative background — matches lampwrecked.art.
+   Particle field flowing through a curl-noise-style vector
+   field that drifts over time. Cursor disturbs the field.
+   Scroll changes flow direction, speed, density, energy.
+   ────────────────────────────────────────────────────────── */
+(function(){
+  const c = document.getElementById('bgCanvas');
+  const ctx = c.getContext('2d');
+  let W=0, H=0, dpr = Math.min(window.devicePixelRatio||1, 2);
+  let particles = [];
+  let mouse = {x:-9999, y:-9999, active:false};
+  let lastMove = 0;
+
+  let scrollY = 0;
+  let scrollNorm = 0;
+  let scrollVel = 0;
+  let lastScroll = 0;
+  let energy = 0;
+  let time = 0;
+
+  function resize(){
+    W = window.innerWidth; H = window.innerHeight;
+    c.width = W * dpr; c.height = H * dpr;
+    c.style.width = W+'px'; c.style.height = H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    initParticles();
+  }
+
+  function initParticles(){
+    const density = Math.min(260, Math.floor((W*H)/9000));
+    particles = [];
+    for(let i=0;i<density;i++){
+      particles.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        vx: 0, vy: 0,
+        r: Math.random()*1.4 + 0.4,
+        baseGrey: 70 + Math.random()*90,
+        phase: Math.random()*Math.PI*2,
+        life: Math.random()*200
+      });
+    }
+  }
+
+  function field(x, y, t){
+    const s = 0.0028;
+    const a = Math.sin(x*s + t*0.6) + Math.cos(y*s*1.3 - t*0.45);
+    const b = Math.cos(x*s*1.7 - t*0.5) + Math.sin(y*s - t*0.7);
+    const bend = scrollNorm * Math.PI * 2;
+    const ang = (a - b) * 0.9 + bend;
+    return { x: Math.cos(ang), y: Math.sin(ang) };
+  }
+
+  window.addEventListener('mousemove', e=>{
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    mouse.active = true; lastMove = performance.now();
+  }, {passive:true});
+  window.addEventListener('touchmove', e=>{
+    if(e.touches.length){
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+      mouse.active = true; lastMove = performance.now();
+    }
+  }, {passive:true});
+  window.addEventListener('mouseleave', ()=>{ mouse.active=false; });
+
+  window.addEventListener('scroll', ()=>{
+    const now = window.scrollY;
+    const dv = now - lastScroll;
+    scrollVel = scrollVel*0.7 + dv*0.3;
+    energy = Math.min(1.4, energy + Math.abs(dv)*0.012);
+    lastScroll = now;
+    scrollY = now;
+    const docH = Math.max(1, document.body.scrollHeight - window.innerHeight);
+    scrollNorm = Math.min(1, Math.max(0, scrollY / docH));
+  }, {passive:true});
+
+  function tick(){
+    time += 0.008;
+    energy *= 0.96;
+    scrollVel *= 0.9;
+
+    const fadeAlpha = 0.14 + 0.08*(1 - Math.min(energy,1));
+    ctx.fillStyle = 'rgba(10,10,10,'+fadeAlpha+')';
+    ctx.fillRect(0,0,W,H);
+
+    const sinceMove = performance.now() - lastMove;
+    const mInfluence = mouse.active ? Math.max(0, 1 - sinceMove/2000) : 0;
+
+    const repelRadius = 160;
+    const repelRadius2 = repelRadius*repelRadius;
+    const linkDist = 110 + energy*70;
+    const linkDist2 = linkDist*linkDist;
+
+    const flowMag = 0.55 + energy*1.6;
+    const verticalBias = scrollVel * 0.025;
+
+    for(let i=0;i<particles.length;i++){
+      const p = particles[i];
+      p.life += 1;
+
+      const f = field(p.x, p.y, time);
+      p.vx += f.x * flowMag * 0.08;
+      p.vy += (f.y * flowMag * 0.08) + verticalBias;
+
+      if(mInfluence > 0){
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const d2 = dx*dx + dy*dy;
+        if(d2 < repelRadius2 && d2 > 0.01){
+          const d = Math.sqrt(d2);
+          const k = (1 - d/repelRadius) * mInfluence;
+          p.vx += (dx/d) * k * 0.7;
+          p.vy += (dy/d) * k * 0.7;
+        }
+      }
+
+      const sp = Math.hypot(p.vx, p.vy);
+      const maxSp = 2.4 + energy*2.5;
+      if(sp > maxSp){
+        p.vx = (p.vx/sp)*maxSp;
+        p.vy = (p.vy/sp)*maxSp;
+      }
+      p.vx *= 0.92; p.vy *= 0.92;
+
+      p.x += p.vx; p.y += p.vy;
+
+      if(p.x < -10) p.x = W+10;
+      if(p.x > W+10) p.x = -10;
+      if(p.y < -10) p.y = H+10;
+      if(p.y > H+10) p.y = -10;
+
+      const pulse = 0.55 + 0.45 * Math.sin(time*2.2 + p.phase);
+      const g = Math.min(220, p.baseGrey + energy*60);
+      const a = 0.35 + pulse*0.25;
+      ctx.fillStyle = 'rgba('+g+','+g+','+g+','+a+')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r*0.85 + energy*0.3, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    const step = energy > 0.2 ? 1 : 2;
+    for(let i=0;i<particles.length;i+=step){
+      const p = particles[i];
+      for(let j=i+1;j<particles.length;j+=step){
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const d2 = dx*dx + dy*dy;
+        if(d2 < linkDist2){
+          const closeness = 1 - d2/linkDist2;
+          const a = closeness * (0.22 + energy*0.22);
+          const g = 170 + Math.floor(energy*50);
+          ctx.strokeStyle = 'rgba('+g+','+g+','+g+','+a+')';
+          ctx.lineWidth = 0.45 + energy*0.35;
+          ctx.beginPath();
+          ctx.moveTo(p.x,p.y);
+          ctx.lineTo(q.x,q.y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    requestAnimationFrame(tick);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  lastScroll = window.scrollY;
+  scrollY = window.scrollY;
+  tick();
+})();
+</script>
 </body>
 </html>
